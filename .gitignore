@@ -1,0 +1,31 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+dist-electron/
+release/
+build/
+
+# Documentation Plan
+docs/
+
+# Local application data (SQLite, credentials, logs) - never ship
+.env
+.env.local
+*.sqlite
+*.sqlite*
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.idea/
+.vscode/*.code-workspace
+.vscode/
+
+# Agent session transcript (curated for dev.to upload - do not commit)
+transcript.md

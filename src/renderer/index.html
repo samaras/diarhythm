@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DiaRhythm</title>
+    <style>
+      @keyframes breathingPulse { 0%, 100% { transform: scale(.88); opacity: .78; } 50% { transform: scale(1.08); opacity: 1; } }
+      @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; } }
+      @media print { header, nav, button { display: none !important; } body, #root { background: white !important; color: black !important; } section { break-inside: avoid; box-shadow: none !important; } main { max-width: none !important; padding: 0 !important; } }
+    </style>
+    <!-- The SmartSpectra renderer runs a blob: URL Web Worker for frame extraction. -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; connect-src 'self' ws://localhost:* http://localhost:*; worker-src 'self' blob:; style-src 'self' 'unsafe-inline';"
+    />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/app/main.tsx"></script>
+  </body>
+</html>
