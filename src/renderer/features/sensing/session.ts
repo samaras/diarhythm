@@ -1,18 +1,21 @@
 import {
   latestBreathingRate,
   latestBreathingWaveform,
+  latestPulseReading,
   type BreathingRate,
   type BreathingWaveform,
+  type PulseReading,
 } from './signal-quality'
 import {
   SmartSpectraSDK,
   breathingMetrics,
+  cardioMetrics,
   ProcessingStatus,
   ValidationCode,
 } from '@smartspectra/node-sdk/renderer'
 import { decodeMetrics } from '@smartspectra/node-sdk/messages'
 
-export type { BreathingRate, BreathingWaveform }
+export type { BreathingRate, BreathingWaveform, PulseReading }
 
 export type ProcessingStatusName =
   | 'uninitialized'
@@ -38,6 +41,7 @@ export type SessionEvent =
   | { type: 'status'; status: ProcessingStatusName }
   | { type: 'stream'; stream: MediaStream | null }
   | { type: 'breathing'; rate: BreathingRate | null; waveform: BreathingWaveform | null }
+  | { type: 'pulse'; rate: PulseReading | null }
   | { type: 'validation'; notice: ValidationNotice | null }
   | { type: 'sdkError'; error: SdkError }
 
@@ -111,8 +115,9 @@ export class SensingSession {
     this.sdk = new SmartSpectraSDK({
       apiKey,
       // Default breathingMetrics bundle (chest breathing, abdomen breathing,
-      // breathing rate). Omitting requestedMetrics is equivalent to this.
-      requestedMetrics: [...breathingMetrics],
+      // breathing rate) plus cardio metrics (pulse rate). Omitting
+      // requestedMetrics is equivalent to breathingMetrics alone.
+      requestedMetrics: [...breathingMetrics, ...cardioMetrics],
       // Telemetry is off for the MVP; the SDK's authenticated service
       // communication (auth / measurement) is disclosed to the user.
       enableTelemetry: false,
@@ -137,6 +142,11 @@ export class SensingSession {
         type: 'breathing',
         rate: latestBreathingRate(metrics?.breathing?.rate),
         waveform: latestBreathingWaveform(upperTrace ?? lowerTrace),
+      })
+      // Emit the newest stable pulse reading, or null while warming up.
+      this.emitEvent({
+        type: 'pulse',
+        rate: latestPulseReading(metrics?.cardio?.pulseRate),
       })
     })
 
@@ -177,6 +187,7 @@ export class SensingSession {
       if (this.sdk === sdk) this.sdk = null
       this.emitEvent({ type: 'stream', stream: null })
       this.emitEvent({ type: 'breathing', rate: null, waveform: null })
+      this.emitEvent({ type: 'pulse', rate: null })
       this.emitEvent({ type: 'validation', notice: null })
       this.emitEvent({ type: 'status', status: 'idle' })
     }

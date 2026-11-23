@@ -3,6 +3,7 @@ import {
   SensingSession,
   BreathingRate,
   BreathingWaveform,
+  PulseReading,
   ValidationNotice,
   SessionEvent,
 } from './session'
@@ -58,6 +59,7 @@ export default function SensingCheckIn() {
   const [status, setStatus] = useState<string>('idle')
   const [stream, setStream] = useState<MediaStream | null>(null)
   const [breathingRate, setBreathingRate] = useState<BreathingRate | null>(null)
+  const [pulseRate, setPulseRate] = useState<PulseReading | null>(null)
   const [waveform, setWaveform] = useState<BreathingWaveform | null>(null)
   const [validation, setValidation] = useState<ValidationNotice | null>(null)
   const [sdkError, setSdkError] = useState<{ message: string; retryable: boolean } | null>(null)
@@ -82,6 +84,9 @@ export default function SensingCheckIn() {
       case 'breathing':
         setBreathingRate(event.rate)
         setWaveform(event.waveform)
+        break
+      case 'pulse':
+        setPulseRate(event.rate)
         break
       case 'validation':
         setValidation(event.notice)
@@ -129,6 +134,7 @@ export default function SensingCheckIn() {
     await sessionRef.current?.stop()
     setPhase('stopped')
     setBreathingRate(null)
+    setPulseRate(null)
     setWaveform(null)
     setValidation(null)
     setSdkError(null)
@@ -195,8 +201,8 @@ export default function SensingCheckIn() {
       <div style={CARD_STYLE}>
         <h2 style={{ margin: '0 0 12px 0', fontSize: 20 }}>Physiological check-in</h2>
         <p style={{ margin: '0 0 16px 0', fontSize: 14, color: '#55606a', lineHeight: 1.5 }}>
-          DiaRhythm can measure your <b>breathing rate</b> from the camera using Presage SmartSpectra
-          — no wearables, no contact.
+          DiaRhythm can measure your <b>breathing rate</b> and <b>pulse</b> from the camera using
+          Presage SmartSpectra — no wearables, no contact.
         </p>
         <ul style={{ margin: '0 0 16px 0', paddingLeft: 18, fontSize: 13, color: '#55606a', lineHeight: 1.6 }}>
           <li>Camera access is requested only after you consent below.</li>
@@ -217,7 +223,7 @@ export default function SensingCheckIn() {
           appears. Early readings show zero confidence and are not treated as valid measurements.
         </p>
         <button style={BUTTON_PRIMARY} onClick={startMeasurement}>
-          I consent — start camera and measure breathing
+          I consent — start camera and measure breathing and pulse
         </button>
       </div>
     </div>
@@ -327,6 +333,24 @@ if (phase === 'error') {
                     confidence {Math.round(breathingRate.confidence)}%
                   </span>
                   <span style={{ fontSize: 12.5, color: '#8a94a0' }}>live breathing rate</span>
+                </>
+              )}
+              {pulseRate && pulseRate.stable && pulseRate.confidence > 0 && (
+                <>
+                  <span style={{ fontSize: 32, fontWeight: 700, letterSpacing: '-1px' }}>
+                    {Math.round(pulseRate.value)} <span style={{ fontSize: 18, color: '#55606a' }}>bpm</span>
+                  </span>
+                  <span
+                    style={{
+                      ...CHIP,
+                      background: '#eef4fb',
+                      color: '#1d4e89',
+                      border: '1px solid #b9cfe6',
+                    }}
+                  >
+                    confidence {Math.round(pulseRate.confidence)}%
+                  </span>
+                  <span style={{ fontSize: 12.5, color: '#8a94a0' }}>live pulse rate</span>
                 </>
               )}
             </div>
